@@ -1,45 +1,65 @@
 # XiaoHe Gboard Converter
 
-来自 [iqsoo.com](https://www.iqsoo.com) 的开源项目：小鹤双拼词库转换工具  
-自动将词库转换为 Gboard 等输入法支持的“小鹤双拼码表”格式。
+一个用于将中文词库转换为 Gboard 可导入格式的小鹤双拼转换工具。
+
+> 官方博客与项目主页：
+> https://www.iqsoo.com
 
 ---
 
-## 一键安装（推荐方式）
+## 项目介绍
 
-无需手动配置环境、克隆项目，只需一行命令即可自动完成安装与运行：
+本项目由 iqsoo.com 提供与维护，主要用于：
 
-```bash
-curl -sSL https://raw.githubusercontent.com/iQSOO/xiaohe-gboard-converter/main/install_xiaohe.sh | bash
-```
+- 中文词库转换
+- 小鹤双拼编码生成
+- Gboard 词典导入
+- 自定义输入法词库处理
 
-**来自 [iqsoo.com](https://www.iqsoo.com) 的开源项目：小鹤双拼词库转换工具**  
-自动将词库转换为 Gboard 等输入法支持的“小鹤双拼码表”格式。
+适用于：
 
----
-
-## 专用运行命令（推荐复制粘贴执行）
-
-### 首次部署并转换：
-
-```bash
-cd /root && bash run_auto.sh
-```
-
-### 后续运行：
-
-```bash
-cd /root && bash run_xiaohe.sh
-```
-
-### 查看日志：
-
-```bash
-tail -f /root/xiaohe.log
-```
+- Gboard
+- 安卓输入法词库制作
+- 小鹤双拼用户
+- 中文输入法研究与学习
 
 ---
 
-**说明：**  
-- **首次使用** 执行：`bash run_auto.sh`（自动安装并启动）  
-- **后续使用** 执行：`bash run_xiaohe.sh`（不重复安装，仅启动转换工具）
+## 快速开始
+
+### 安装依赖
+
+```bash
+pip install pypinyin
+```
+
+### 运行转换
+
+```bash
+python3 convert_to_xiaohe_txt.py
+```
+
+---
+
+## 输出文件
+
+生成文件：
+
+```text
+gboard_xiaohe.txt
+```
+
+支持直接导入到 Gboard 个人词典。
+
+---
+
+## 官方网站
+
+- 博客主页：https://www.iqsoo.com
+- GitHub：https://github.com/iQSOO
+
+---
+
+## License
+
+MIT License
