@@ -1,0 +1,64 @@
+name: Temporary BiliPai APK Build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.bilipai-build-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout trigger repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clone BiliPai source
+        run: |
+          git clone --depth 1 --branch 9.8.6 https://github.com/jay3-yy/BiliPai.git BiliPai || git clone --depth 1 https://github.com/jay3-yy/BiliPai.git BiliPai
+          cd BiliPai
+          echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "UPSTREAM_DATE=$(git log -1 --format=%cI)" >> "$GITHUB_ENV"
+
+      - name: Build debug APK
+        working-directory: BiliPai
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx5g -Dfile.encoding=UTF-8
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Collect APK and license
+        run: |
+          mkdir -p output
+          find BiliPai/app/build/outputs/apk -type f -name '*.apk' -print -exec cp '{}' output/ \;
+          cp BiliPai/LICENSE output/BiliPai-LICENSE.txt
+          printf 'Upstream: https://github.com/jay3-yy/BiliPai\nCommit: %s\nCommit date: %s\nBuild type: debug\nPurpose: personal non-commercial use\n' "$UPSTREAM_COMMIT" "$UPSTREAM_DATE" > output/BUILD-INFO.txt
+          test -n "$(find output -maxdepth 1 -name '*.apk' -print -quit)"
+          ls -lh output
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiliPai-personal-debug-apk
+          path: output/*
+          if-no-files-found: error
+          retention-days: 7
