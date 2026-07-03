@@ -1,11 +1,16 @@
-name: Build iQSOO Bili Custom APK
+name: Build Bili-iQSOO APK
 
 on:
   push:
     branches: [main]
     paths:
       - 'tools/patch_iqsoo_bili.py'
+      - 'tools/patch_bili_iqsoo_perf_v101.py'
       - '.github/workflows/build-iqsoo-bili-custom.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bili-iqsoo-build-trigger.txt'
   workflow_dispatch:
 
 permissions:
@@ -38,11 +43,11 @@ jobs:
           cd BiliPai
           echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
-      - name: Apply iQSOO personal-build changes
+      - name: Apply Bili-iQSOO performance patch
         working-directory: BiliPai
         run: python3 ../tools/patch_iqsoo_bili.py
 
-      - name: Build custom debug APK
+      - name: Build optimized APK
         working-directory: BiliPai
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx5g -Dfile.encoding=UTF-8
@@ -56,17 +61,17 @@ jobs:
           find BiliPai/app/build/outputs/apk/debug -type f -name '*.apk' -print -exec cp '{}' output/ \;
           test -n "$(find output -maxdepth 1 -name '*.apk' -print -quit)"
           cp BiliPai/LICENSE output/GPL-3.0-LICENSE.txt
-          cp BiliPai/IQSOO_MODIFICATIONS.md output/IQSOO_MODIFICATIONS.md
-          (cd BiliPai && zip -qr ../output/iQSOO-Bili-9.8.6-iqsoo1-modified-source.zip . -x '.git/*' 'app/build/*' '.gradle/*' 'build/*')
+          cp BiliPai/BILI_IQSOO_MODIFICATIONS.txt output/BILI_IQSOO_MODIFICATIONS.txt
+          (cd BiliPai && zip -qr ../output/Bili-iQSOO-1.0.1-modified-source.zip . -x '.git/*' 'app/build/*' '.gradle/*' 'build/*')
           cd output
           sha256sum *.apk > SHA256SUMS.txt
-          printf 'Upstream commit: %s\nBuild date: 2026-07-03\nBuild type: debug\nPackage: com.iqsoo.bili.debug\nLicense: GNU GPLv3\n' "$UPSTREAM_COMMIT" > BUILD-INFO.txt
+          printf 'Upstream commit: %s\nBuild date: 2026-07-03\nBuild type: optimized debug-signed\nPackage: com.iqsoo.bili\nLicense: GNU GPLv3\n' "$UPSTREAM_COMMIT" > BUILD-INFO.txt
           ls -lh
 
-      - name: Upload custom build artifact
+      - name: Upload Bili-iQSOO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iQSOO-Bili-9.8.6-iqsoo1
+          name: Bili-iQSOO-1.0.1-performance
           path: output/*
           if-no-files-found: error
           retention-days: 7
