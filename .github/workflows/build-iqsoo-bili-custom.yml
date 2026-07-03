@@ -53,7 +53,24 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx5g -Dfile.encoding=UTF-8
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          set +e
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace > ../build.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            grep -E "(^e: |error:|FAILURE:|What went wrong|Execution failed|Caused by:)" ../build.log | tail -n 180 || true
+            tail -n 100 ../build.log
+            exit "$status"
+          fi
+          tail -n 80 ../build.log
+
+      - name: Upload build diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bili-iQSOO-build-log
+          path: build.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Collect APK, source and verification data
         run: |
