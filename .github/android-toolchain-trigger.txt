@@ -1,2 +1,0 @@
-Build Android offline toolchain for local APK compilation.
-Retry after fixing SDK license pipeline.
