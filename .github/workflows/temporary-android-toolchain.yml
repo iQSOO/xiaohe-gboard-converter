@@ -1,0 +1,45 @@
+name: Temporary Android Offline Toolchain
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/android-toolchain-trigger.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  package-toolchain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 35 tools
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Package offline toolchain
+        shell: bash
+        run: |
+          set -euxo pipefail
+          ROOT="$RUNNER_TEMP/android-offline"
+          mkdir -p "$ROOT/platforms" "$ROOT/build-tools"
+          cp -a "$ANDROID_SDK_ROOT/platforms/android-35" "$ROOT/platforms/"
+          cp -a "$ANDROID_SDK_ROOT/build-tools/35.0.0" "$ROOT/build-tools/"
+          tar -C "$RUNNER_TEMP" -czf android-offline-toolchain.tar.gz android-offline
+          sha256sum android-offline-toolchain.tar.gz > android-offline-toolchain.sha256
+
+      - name: Upload toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-offline-toolchain
+          path: |
+            android-offline-toolchain.tar.gz
+            android-offline-toolchain.sha256
+          retention-days: 1
+          compression-level: 0
