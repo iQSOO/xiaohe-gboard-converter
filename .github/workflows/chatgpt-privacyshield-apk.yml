@@ -20,10 +20,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          wc -c .chatgpt-privacyshield/src.*
-          sha256sum .chatgpt-privacyshield/src.*
-          cat .chatgpt-privacyshield/src.00 .chatgpt-privacyshield/src.01 .chatgpt-privacyshield/src.02 .chatgpt-privacyshield/src.03 .chatgpt-privacyshield/src.04 .chatgpt-privacyshield/src.05 > /tmp/privacyshield.raw.b64
-          LC_ALL=C tr -cd 'A-Za-z0-9+/=' < /tmp/privacyshield.raw.b64 > /tmp/privacyshield.b64
+          echo '816dbf1b79960d6ab275996a787b72176db35dd0090c7ef3b7a9c10b00408d46  .chatgpt-privacyshield/fix.00' | sha256sum -c -
+          echo '76c62e9a85668dc9b24c1ed1683bbffb68f7529230070a45d313c8f15b3b2a51  .chatgpt-privacyshield/fix.01' | sha256sum -c -
+          echo '9d86e5af1a38f9a284da729772a17e73e97a523c10e5982ac25caffd2e649b5b  .chatgpt-privacyshield/fix.02' | sha256sum -c -
+          echo 'cde094092c00ec87330be286b9c0b0530e8e666ad0a1246e46eb31e59db9ac7d  .chatgpt-privacyshield/fix.03' | sha256sum -c -
+          echo 'bd62f034f7433ba3a7c928234c3c4fb2aef7a0a97ffe3a7b3c865cf26a3435ea  .chatgpt-privacyshield/fix.04' | sha256sum -c -
+          echo '0bd1581b37713874eeeda21f734de21d192b8fe533bfde232d916d7ff19cd2b1  .chatgpt-privacyshield/fix.05' | sha256sum -c -
+          echo 'cab28b4a6ffd8a8aec1273b82849a3c09646702398b70c547d68f5b2ebd1d815  .chatgpt-privacyshield/fix.06' | sha256sum -c -
+          echo '7c0d75a38decee58d186905a13b113147c1662caca8dba4bda799a3201245577  .chatgpt-privacyshield/fix.07' | sha256sum -c -
+          echo '46fb2c0bf32e7157873c412ae49527a2a809fddee5a2eff2204b1c4c52c170cc  .chatgpt-privacyshield/fix.08' | sha256sum -c -
+          echo 'e8b11231601cbbe80d2c742911177bc222bd01d8e16d09bc96f52d04c2ccdbbb  .chatgpt-privacyshield/fix.09' | sha256sum -c -
+          echo '1aefa63685faf7ad47750b7683f00b159560d30a640a89cef8df433d318a9780  .chatgpt-privacyshield/src.02' | sha256sum -c -
+          echo '757bb5ee1395cc5c1c58fdf53956414cccb3e224ea83cbbbbb1fad902382a6ce  .chatgpt-privacyshield/src.03' | sha256sum -c -
+          echo '98014f4a6174cf14c00a41ad9bea5e4e4c2fde92de63ecd707e0f2fa57ab0231  .chatgpt-privacyshield/src.04' | sha256sum -c -
+          echo '7df8539d0f6cd037f53e718e2caac20b4e3101b3b1871fcabc8ddd236b451d13  .chatgpt-privacyshield/src.05' | sha256sum -c -
+          cat .chatgpt-privacyshield/fix.00 .chatgpt-privacyshield/fix.01 .chatgpt-privacyshield/fix.02 .chatgpt-privacyshield/fix.03 .chatgpt-privacyshield/fix.04 .chatgpt-privacyshield/fix.05 .chatgpt-privacyshield/fix.06 .chatgpt-privacyshield/fix.07 .chatgpt-privacyshield/fix.08 .chatgpt-privacyshield/fix.09 .chatgpt-privacyshield/src.02 .chatgpt-privacyshield/src.03 .chatgpt-privacyshield/src.04 .chatgpt-privacyshield/src.05 > /tmp/privacyshield.b64
+          test "$(wc -c < /tmp/privacyshield.b64)" -eq 44772
           echo '573f64378948e603b536a251cb2a86ae14cdec6236a974843bcd8358518bd059  /tmp/privacyshield.b64' | sha256sum -c -
           base64 --decode /tmp/privacyshield.b64 > /tmp/PrivacyShieldShizuku-source-v0.2.0.zip
           echo '4b6e3eed3286c8728fc07f3a0df1692fa19ca5b5889d714d12a24d678260dc2c  /tmp/PrivacyShieldShizuku-source-v0.2.0.zip' | sha256sum -c -
