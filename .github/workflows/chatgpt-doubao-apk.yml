@@ -1,0 +1,78 @@
+name: Build Doubao 0.5 temporary
+
+on:
+  push:
+    branches:
+      - chatgpt-doubao-apk-20260916
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout temporary branch
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android platform and build tools
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Reconstruct and verify Doubao 0.5 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .chatgpt-doubao/src.00a .chatgpt-doubao/src.00b .chatgpt-doubao/src.01 .chatgpt-doubao/src.02 .chatgpt-doubao/src.03 .chatgpt-doubao/src.04 .chatgpt-doubao/src.05 > /tmp/doubao.b64
+          base64 --decode /tmp/doubao.b64 > /tmp/DoubaoEnhancer-0.5.0-buildsrc.zip
+          echo '54be350adde81c0f4749a5f05c3b66dc682ea88f22c8044cbba89e1e3c0c9c2e  /tmp/DoubaoEnhancer-0.5.0-buildsrc.zip' | sha256sum -c -
+          mkdir -p /tmp/doubao-build
+          unzip -q /tmp/DoubaoEnhancer-0.5.0-buildsrc.zip -d /tmp/doubao-build
+          grep -q "versionName '0.5.0-experimental'" /tmp/doubao-build/doubao-module/app/build.gradle
+      - name: Prepare Xposed API dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/doubao-build/doubao-module
+          mkdir -p app/libs
+          if ! curl -fL --retry 3 --connect-timeout 15 'https://maven.aliyun.com/repository/public/de/robv/android/xposed/api/82/api-82.jar' -o app/libs/xposed-api-82.jar; then
+            curl -fL --retry 3 --connect-timeout 15 'https://api.xposed.info/repo/de/robv/android/xposed/api/82/api-82.jar' -o app/libs/xposed-api-82.jar
+          fi
+          test -s app/libs/xposed-api-82.jar
+          sed -i "s#compileOnly 'de.robv.android.xposed:api:82'#compileOnly files('libs/xposed-api-82.jar')#" app/build.gradle
+      - name: Build debug APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/doubao-build/doubao-module
+          gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Verify APK and prepare deliverables
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK='/tmp/doubao-build/doubao-module/app/build/outputs/apk/debug/app-debug.apk'
+          test -s "$APK"
+          mkdir -p /tmp/doubao-output
+          cp "$APK" /tmp/doubao-output/DoubaoEnhancer-0.5.0-experimental.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/doubao-output/APK-VERIFY.txt
+          sha256sum /tmp/doubao-output/DoubaoEnhancer-0.5.0-experimental.apk | tee /tmp/doubao-output/SHA256SUMS.txt
+          unzip -t /tmp/doubao-output/DoubaoEnhancer-0.5.0-experimental.apk >/dev/null
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DoubaoEnhancer-0.5.0-APK
+          path: /tmp/doubao-output/
+          retention-days: 1
+          if-no-files-found: error
