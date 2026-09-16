@@ -1,0 +1,66 @@
+name: Build Rime Helper APK
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-rime-helper-apk.yml"
+      - "scripts/build-rime-helper-apk-v2.sh"
+      - "rime-apk-overlay/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rime-helper-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build fixed arm64 APK
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout builder branch
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Android native toolchain
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ninja-build rsync unzip
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "ndk;28.0.13004108" \
+            "cmake;3.31.6"
+
+      - name: Build corrected Rime APK
+        shell: bash
+        env:
+          BUILD_ABI_TARGET: arm64-v8a
+        run: |
+          chmod +x scripts/build-rime-helper-apk-v2.sh
+          scripts/build-rime-helper-apk-v2.sh
+
+      - name: Upload installable APK and notices
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rime-Helper-Fixed-v1.0.1-arm64-v8a
+          path: out/*
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 30
