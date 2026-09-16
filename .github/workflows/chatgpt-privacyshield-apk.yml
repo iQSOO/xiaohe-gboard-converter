@@ -1,4 +1,4 @@
-name: Build PrivacyShield APK temporary
+name: Build AppOps Restore APK temporary
 
 on:
   push:
@@ -18,16 +18,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .chatgpt-privacyshield/fix.{00..09} .chatgpt-privacyshield/src.{02..05} > /tmp/privacyshield.b64
-          test "$(wc -c < /tmp/privacyshield.b64)" -eq 44772
-          echo '573f64378948e603b536a251cb2a86ae14cdec6236a974843bcd8358518bd059  /tmp/privacyshield.b64' | sha256sum -c -
-          base64 --decode /tmp/privacyshield.b64 > /tmp/PrivacyShieldShizuku-source-v0.2.0.zip
-          echo '4b6e3eed3286c8728fc07f3a0df1692fa19ca5b5889d714d12a24d678260dc2c  /tmp/PrivacyShieldShizuku-source-v0.2.0.zip' | sha256sum -c -
-          rm -rf /tmp/privacyshield-build
-          mkdir -p /tmp/privacyshield-build
-          unzip -q /tmp/PrivacyShieldShizuku-source-v0.2.0.zip -d /tmp/privacyshield-build
-          test -f /tmp/privacyshield-build/PrivacyShieldShizuku/build.gradle.kts
-          test -f /tmp/privacyshield-build/PrivacyShieldShizuku/app/build.gradle.kts
+          cat .chatgpt-privacyshield/fix.00 .chatgpt-privacyshield/fix.01 .chatgpt-privacyshield/fix.02 > /tmp/appopsrestore.b64
+          test "$(wc -c < /tmp/appopsrestore.b64)" -eq 16988
+          echo '30cf52b981edba818046a7d97764edcc3859d493aaa1729d407fa02291506b58  /tmp/appopsrestore.b64' | sha256sum -c -
+          base64 --decode /tmp/appopsrestore.b64 > /tmp/AppOpsRestoreShizuku-source.zip
+          echo 'df18d6cbc3f4f196e508f5b3a25ff84d07a7741cf6c91c744d0fa943bfd615e4  /tmp/AppOpsRestoreShizuku-source.zip' | sha256sum -c -
+          rm -rf /tmp/appopsrestore-build
+          mkdir -p /tmp/appopsrestore-build
+          unzip -q /tmp/AppOpsRestoreShizuku-source.zip -d /tmp/appopsrestore-build
+          test -f /tmp/appopsrestore-build/AppOpsRestoreShizuku/build.gradle.kts
+          test -f /tmp/appopsrestore-build/AppOpsRestoreShizuku/app/build.gradle.kts
 
       - name: Java 17
         uses: actions/setup-java@v5
@@ -56,25 +56,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd /tmp/privacyshield-build/PrivacyShieldShizuku
+          cd /tmp/appopsrestore-build/AppOpsRestoreShizuku
           gradle --no-daemon --stacktrace :app:assembleDebug
 
       - name: Verify APK
         shell: bash
         run: |
           set -euo pipefail
-          APK='/tmp/privacyshield-build/PrivacyShieldShizuku/app/build/outputs/apk/debug/app-debug.apk'
+          APK='/tmp/appopsrestore-build/AppOpsRestoreShizuku/app/build/outputs/apk/debug/app-debug.apk'
           test -s "$APK"
-          mkdir -p /tmp/privacyshield-output
-          cp "$APK" /tmp/privacyshield-output/iQSOO-PrivacyShield-v0.2.0-debug.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/privacyshield-output/APK-VERIFY.txt
-          sha256sum /tmp/privacyshield-output/iQSOO-PrivacyShield-v0.2.0-debug.apk | tee /tmp/privacyshield-output/SHA256SUMS.txt
-          unzip -t /tmp/privacyshield-output/iQSOO-PrivacyShield-v0.2.0-debug.apk >/dev/null
+          mkdir -p /tmp/appopsrestore-output
+          cp "$APK" /tmp/appopsrestore-output/iQSOO-AppOps-Restore-v1.0.0.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/appopsrestore-output/APK-VERIFY.txt
+          sha256sum /tmp/appopsrestore-output/iQSOO-AppOps-Restore-v1.0.0.apk | tee /tmp/appopsrestore-output/SHA256SUMS.txt
+          unzip -t /tmp/appopsrestore-output/iQSOO-AppOps-Restore-v1.0.0.apk >/dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: iQSOO-PrivacyShield-v0.2.0-APK
-          path: /tmp/privacyshield-output/
+          name: iQSOO-AppOps-Restore-v1.0.0-APK
+          path: /tmp/appopsrestore-output/
           retention-days: 1
           if-no-files-found: error
