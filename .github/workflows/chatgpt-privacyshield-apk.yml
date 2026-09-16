@@ -16,6 +16,23 @@ jobs:
       - name: Checkout temporary branch
         uses: actions/checkout@v4
 
+      - name: Reconstruct and verify source
+        shell: bash
+        run: |
+          set -euo pipefail
+          wc -c .chatgpt-privacyshield/src.*
+          sha256sum .chatgpt-privacyshield/src.*
+          cat .chatgpt-privacyshield/src.00 .chatgpt-privacyshield/src.01 .chatgpt-privacyshield/src.02 .chatgpt-privacyshield/src.03 .chatgpt-privacyshield/src.04 .chatgpt-privacyshield/src.05 > /tmp/privacyshield.raw.b64
+          LC_ALL=C tr -cd 'A-Za-z0-9+/=' < /tmp/privacyshield.raw.b64 > /tmp/privacyshield.b64
+          echo '573f64378948e603b536a251cb2a86ae14cdec6236a974843bcd8358518bd059  /tmp/privacyshield.b64' | sha256sum -c -
+          base64 --decode /tmp/privacyshield.b64 > /tmp/PrivacyShieldShizuku-source-v0.2.0.zip
+          echo '4b6e3eed3286c8728fc07f3a0df1692fa19ca5b5889d714d12a24d678260dc2c  /tmp/PrivacyShieldShizuku-source-v0.2.0.zip' | sha256sum -c -
+          rm -rf /tmp/privacyshield-build
+          mkdir -p /tmp/privacyshield-build
+          unzip -q /tmp/PrivacyShieldShizuku-source-v0.2.0.zip -d /tmp/privacyshield-build
+          test -f /tmp/privacyshield-build/build.gradle.kts
+          test -f /tmp/privacyshield-build/app/build.gradle.kts
+
       - name: Set up Java 17
         uses: actions/setup-java@v5
         with:
@@ -39,21 +56,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-
-      - name: Reconstruct source
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .chatgpt-privacyshield/src.00 .chatgpt-privacyshield/src.01 .chatgpt-privacyshield/src.02 .chatgpt-privacyshield/src.03 .chatgpt-privacyshield/src.04 .chatgpt-privacyshield/src.05 > /tmp/privacyshield.raw.b64
-          LC_ALL=C tr -cd 'A-Za-z0-9+/=' < /tmp/privacyshield.raw.b64 > /tmp/privacyshield.b64
-          echo '573f64378948e603b536a251cb2a86ae14cdec6236a974843bcd8358518bd059  /tmp/privacyshield.b64' | sha256sum -c -
-          base64 --decode /tmp/privacyshield.b64 > /tmp/PrivacyShieldShizuku-source-v0.2.0.zip
-          echo '4b6e3eed3286c8728fc07f3a0df1692fa19ca5b5889d714d12a24d678260dc2c  /tmp/PrivacyShieldShizuku-source-v0.2.0.zip' | sha256sum -c -
-          rm -rf /tmp/privacyshield-build
-          mkdir -p /tmp/privacyshield-build
-          unzip -q /tmp/PrivacyShieldShizuku-source-v0.2.0.zip -d /tmp/privacyshield-build
-          test -f /tmp/privacyshield-build/build.gradle.kts
-          test -f /tmp/privacyshield-build/app/build.gradle.kts
 
       - name: Build debug APK
         shell: bash
