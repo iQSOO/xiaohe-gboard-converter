@@ -1,0 +1,1 @@
+This standalone simulator only affects its own built-in scene and local settings.

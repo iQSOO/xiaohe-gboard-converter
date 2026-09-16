@@ -1,0 +1,1 @@
+Standalone Android simulator source is ready for automated build.
