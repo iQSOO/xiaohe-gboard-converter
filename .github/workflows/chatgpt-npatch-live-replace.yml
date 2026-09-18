@@ -17,25 +17,36 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - name: Install Android SDK
-        run: yes | sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.10.2'
+          gradle-version: '8.9'
+      - name: Install Android SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
       - name: Reconstruct project
         run: |
+          rm -rf /tmp/npatch-src
           mkdir -p /tmp/npatch-src
           cat .npatch-build/source.part*.b64 | base64 -d > /tmp/npatch-src/source.zip
           unzip -q /tmp/npatch-src/source.zip -d /tmp/npatch-src
           test -f /tmp/npatch-src/NPatchLiveReplace/app/src/main/AndroidManifest.xml
-      - name: Build APK
+      - name: Build signed APK
         working-directory: /tmp/npatch-src/NPatchLiveReplace
-        run: gradle :app:assembleRelease --stacktrace
-      - name: Prepare artifact
+        run: gradle :app:assembleDebug --stacktrace
+      - name: Verify artifact
+        shell: bash
         run: |
-          cp /tmp/npatch-src/NPatchLiveReplace/app/build/outputs/apk/release/app-release.apk NPatch-Live-Replace-v1.0.0.apk
-          sha256sum NPatch-Live-Replace-v1.0.0.apk > SHA256.txt
+          APK_SRC=/tmp/npatch-src/NPatchLiveReplace/app/build/outputs/apk/debug/app-debug.apk
+          APK_OUT=NPatch-Live-Replace-v1.0.0.apk
+          test -f "$APK_SRC"
+          cp "$APK_SRC" "$APK_OUT"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK_OUT"
+          test "$(unzip -p "$APK_OUT" assets/xposed_init | tr -d '\r\n')" = "com.iqsoo.npatch.livereplacer.LiveReplaceModule"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest print "$APK_OUT" | grep -q 'xposedmodule'
+          sha256sum "$APK_OUT" > SHA256.txt
       - uses: actions/upload-artifact@v4
         with:
           name: NPatch-Live-Replace-v1.0.0
