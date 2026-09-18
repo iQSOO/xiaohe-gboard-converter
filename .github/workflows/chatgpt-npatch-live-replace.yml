@@ -1,4 +1,4 @@
-name: Export Android SDK Tools
+name: Export zipalign runtime
 on:
   push:
     branches:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  export-sdk:
+  export-runtime:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,21 +18,17 @@ jobs:
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Prepare tool bundle
+          "$SDKMANAGER" 'build-tools;35.0.0'
+      - name: Collect runtime
         shell: bash
         run: |
-          mkdir sdk35
-          cp "$ANDROID_HOME/platforms/android-35/android.jar" sdk35/
-          cp "$ANDROID_HOME/build-tools/35.0.0/aapt2" sdk35/
-          cp "$ANDROID_HOME/build-tools/35.0.0/zipalign" sdk35/
-          cp "$ANDROID_HOME/build-tools/35.0.0/lib/d8.jar" sdk35/
-          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" sdk35/
-          chmod +x sdk35/aapt2 sdk35/zipalign
-          sha256sum sdk35/* > sdk35/SHA256SUMS.txt
+          mkdir runtime
+          find "$ANDROID_HOME/build-tools/35.0.0" -name 'libc++.so*' -type f -print -exec cp -L {} runtime/ \;
+          test -f runtime/libc++.so
+          sha256sum runtime/* > runtime/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: android-sdk35-minimal
-          path: sdk35
+          name: zipalign-runtime
+          path: runtime
           if-no-files-found: error
           retention-days: 1
