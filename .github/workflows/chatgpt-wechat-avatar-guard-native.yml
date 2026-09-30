@@ -43,12 +43,12 @@ jobs:
           /usr/local/lib/android/sdk/build-tools/36.0.0/apksigner verify --verbose "$APK"
           /usr/local/lib/android/sdk/build-tools/36.0.0/zipalign -c -P 16 -v 4 "$APK"
           mkdir -p out
-          cp "$APK" out/微信透明头像守卫-v1.3.0.apk
-          sha256sum out/微信透明头像守卫-v1.3.0.apk | tee out/SHA256.txt
+          cp "$APK" out/微信透明头像守卫-v1.4.0.apk
+          sha256sum out/微信透明头像守卫-v1.4.0.apk | tee out/SHA256.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wechat-avatar-guard-native-v1.3.0
+          name: wechat-avatar-guard-native-v1.4.0
           path: out/*
           if-no-files-found: error
           retention-days: 1
