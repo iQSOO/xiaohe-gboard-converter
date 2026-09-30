@@ -1,0 +1,54 @@
+name: Build Native WeChat Avatar Guard
+
+on:
+  push:
+    branches:
+      - chatgpt-avatar-guard-v110
+    paths:
+      - 'chatgpt-build/wechat-avatar-guard2/**'
+      - '.github/workflows/chatgpt-wechat-avatar-guard-native.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Install Android SDK 36
+        run: |
+          SDKMANAGER="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | sort -V | tail -n 1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
+
+      - name: Build APK
+        working-directory: chatgpt-build/wechat-avatar-guard2
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Verify APK
+        run: |
+          APK=chatgpt-build/wechat-avatar-guard2/app/build/outputs/apk/debug/app-debug.apk
+          /usr/local/lib/android/sdk/build-tools/36.0.0/apksigner verify --verbose "$APK"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/zipalign -c -P 16 -v 4 "$APK"
+          mkdir -p out
+          cp "$APK" out/微信透明头像守卫-v1.2.0.apk
+          sha256sum out/微信透明头像守卫-v1.2.0.apk | tee out/SHA256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wechat-avatar-guard-native-v1.2.0
+          path: out/*
+          if-no-files-found: error
+          retention-days: 1
