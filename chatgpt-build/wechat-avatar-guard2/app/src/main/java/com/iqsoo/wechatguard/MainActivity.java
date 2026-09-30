@@ -124,13 +124,13 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("微信透明头像守卫 v1.2.0");
+        title.setText("微信透明头像守卫 v1.3.0");
         title.setTextSize(25);
         title.setGravity(Gravity.CENTER_HORIZONTAL);
         root.addView(title, full(-2));
 
         TextView desc = new TextView(this);
-        desc.setText("源码原生重构版。只在你点击“开始守护”后启动 Shizuku UserService。普通 ADB Shizuku 监听微信外部 Android/data；Root Shizuku 还会监控微信私有 MicroMsg/avatar 目录。");
+        desc.setText("按微信 smali 实际路径修正版：普通 Shizuku 监听 Pictures/WeiXin、Pictures/WeChat 及旧版 tencent/MicroMsg 路径；Root Shizuku 额外监听微信私有头像目录。普通 Shizuku 下请从微信“拍摄”入口更换头像。");
         desc.setTextSize(14);
         LinearLayout.LayoutParams dp = full(-2);
         dp.topMargin = dp(12);
@@ -387,8 +387,8 @@ public final class MainActivity extends Activity {
                 .processNameSuffix("wechat_avatar_guard")
                 .daemon(true)
                 .debuggable(BuildConfig.DEBUG)
-                .version(3)
-                .tag("wechat_avatar_guard_v3");
+                .version(4)
+                .tag("wechat_avatar_guard_v4");
     }
 
     private void runPendingAction() {
