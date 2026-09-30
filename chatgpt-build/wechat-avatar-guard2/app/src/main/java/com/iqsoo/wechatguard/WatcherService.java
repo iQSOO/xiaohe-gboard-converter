@@ -57,6 +57,9 @@ public final class WatcherService extends IWatcherService.Stub {
         count += watchDir(new File("/storage/emulated/0/Pictures"));
         count += watchDir(new File("/storage/emulated/0/Pictures/WeiXin"));
         count += watchDir(new File("/storage/emulated/0/Pictures/WeChat"));
+        count += watchDir(new File("/storage/emulated/0/DCIM"));
+        count += watchDir(new File("/storage/emulated/0/DCIM/WeiXin"));
+        count += watchDir(new File("/storage/emulated/0/DCIM/WeChat"));
 
         // Legacy compatibility path from qs0/b.b().
         count += watchDir(new File("/storage/emulated/0/tencent/MicroMsg"));
@@ -77,16 +80,8 @@ public final class WatcherService extends IWatcherService.Stub {
         watching = true;
         lastMessage = "守护中 · uid=" + uid
                 + " · 监听 " + count + " 个目录"
-                + (uid == 0 ? " · 相册/拍摄均可尝试" : " · 普通 Shizuku 建议走微信“拍摄”头像");
-
-        handler.postDelayed(() -> {
-            synchronized (WatcherService.this) {
-                if (watching) {
-                    stopWatchingInternal();
-                    lastMessage = "90 秒守护窗口已结束";
-                }
-            }
-        }, 90_000L);
+                + " · 无限守护"
+                + (uid == 0 ? " · 可访问微信私有头像目录" : " · 普通 Shizuku 无法进入微信 /data 私有目录");
 
         return true;
     }
@@ -188,6 +183,8 @@ public final class WatcherService extends IWatcherService.Stub {
         boolean inWechatPicturePath =
                 path.contains("/pictures/weixin/")
                 || path.contains("/pictures/wechat/")
+                || path.contains("/dcim/weixin/")
+                || path.contains("/dcim/wechat/")
                 || path.contains("/tencent/micromsg/weixin/")
                 || path.contains("/tencent/micromsg/wechat/");
 
@@ -301,6 +298,8 @@ public final class WatcherService extends IWatcherService.Stub {
     public String getDiagnostics(String masterPath) {
         File p1 = new File("/storage/emulated/0/Pictures/WeiXin");
         File p2 = new File("/storage/emulated/0/Pictures/WeChat");
+        File d1 = new File("/storage/emulated/0/DCIM/WeiXin");
+        File d2 = new File("/storage/emulated/0/DCIM/WeChat");
         File p3 = new File("/storage/emulated/0/tencent/MicroMsg/WeiXin");
         File p4 = new File("/storage/emulated/0/tencent/MicroMsg/WeChat");
         File priv = new File("/data/user/0/com.tencent.mm/MicroMsg");
@@ -309,6 +308,8 @@ public final class WatcherService extends IWatcherService.Stub {
                 + "\nmaster.png=" + isPng(new File(masterPath))
                 + "\nPictures/WeiXin: exists=" + p1.exists() + ", read=" + p1.canRead()
                 + "\nPictures/WeChat: exists=" + p2.exists() + ", read=" + p2.canRead()
+                + "\nDCIM/WeiXin: exists=" + d1.exists() + ", read=" + d1.canRead()
+                + "\nDCIM/WeChat: exists=" + d2.exists() + ", read=" + d2.canRead()
                 + "\nlegacy/WeiXin: exists=" + p3.exists() + ", read=" + p3.canRead()
                 + "\nlegacy/WeChat: exists=" + p4.exists() + ", read=" + p4.canRead()
                 + "\nprivate MicroMsg: exists=" + priv.exists() + ", read=" + priv.canRead()
