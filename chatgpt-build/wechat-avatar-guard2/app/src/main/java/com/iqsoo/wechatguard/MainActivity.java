@@ -124,7 +124,7 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("微信透明头像守卫 v1.3.0");
+        title.setText("微信透明头像守卫 v1.4.0");
         title.setTextSize(25);
         title.setGravity(Gravity.CENTER_HORIZONTAL);
         root.addView(title, full(-2));
@@ -157,7 +157,7 @@ public final class MainActivity extends Activity {
         choose.setOnClickListener(v -> pickPng());
         root.addView(choose, spaced());
 
-        Button start = button("开始守护 90 秒");
+        Button start = button("开始无限守护");
         start.setOnClickListener(v -> startGuard());
         root.addView(start, spaced());
 
@@ -387,8 +387,8 @@ public final class MainActivity extends Activity {
                 .processNameSuffix("wechat_avatar_guard")
                 .daemon(true)
                 .debuggable(BuildConfig.DEBUG)
-                .version(4)
-                .tag("wechat_avatar_guard_v4");
+                .version(5)
+                .tag("wechat_avatar_guard_v5");
     }
 
     private void runPendingAction() {
@@ -402,7 +402,7 @@ public final class MainActivity extends Activity {
     private void startGuardInternal() {
         try {
             boolean ok = watcher.startWatching(masterFile().getAbsolutePath());
-            setStatus(ok ? "守护已开启，90 秒内请立即去微信更换头像" : watcher.getLastMessage());
+            setStatus(ok ? "无限守护已开启，可随时去微信更换头像" : watcher.getLastMessage());
             refreshStatus();
         } catch (Throwable e) {
             setStatus("启动守护失败：" + e.getClass().getSimpleName() + ": " + e.getMessage());
